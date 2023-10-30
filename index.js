@@ -34,27 +34,50 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const serviceCollection = client.db('CarGarage').collection('services')
+    const serviceCollection = client.db('CarGarage').collection('services');
+    const booKingCollection = client.db('CarGarage').collection('bookings');
 
-
+    //get services
     app.get('/services',  async(req, res) => {
       const cursor = serviceCollection.find()
       const result = await cursor.toArray();
       res.send(result);
     })
 
-
+    //get singel services
     app.get('/services/:id', async(req, res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
 
       const options = {
-        projection: { title: 1, price: 1, service_id: 1 }
+        projection: { title: 1, price: 1, service_id: 1, img: 1 }
       }
 
       const result = await serviceCollection.findOne(query, options);
       res.send(result)
     })
+
+
+
+    // bookings
+    app.get('/bookings', async(req, res) => {
+      console.log(req.query.email);
+      let query = {}
+      if(req.query?.email){
+        query = {email: req.query.email}
+      }
+      const result = await booKingCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.post('/bookings', async (req , res) => {
+      const booking = req.body;
+      
+      console.log(booking);
+      const result = await booKingCollection.insertOne(booking)
+      res.send(result)
+    })
+
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
